@@ -87,7 +87,7 @@ const App = createClass({
 				<BodyConfig 
 					handleSexChange={this.handleSexChange}
 					handleWeightChange={this.handleWeightChange}
-					saySex={this.addRow}
+					addRow={this.addRow}
 					weight={this.state.weight}
 					gender={this.state.gender}
 				/>
@@ -110,7 +110,6 @@ const App = createClass({
 			</div>			
 		)
 	}
-
 });
 
 render(<App />, document.querySelector("#app"));

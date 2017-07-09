@@ -1,18 +1,20 @@
 import React from "react";
 
 function BodyConfig(props) {
-	return <div>
-		<label>Weight (kg):
-			<input type="number" min="10" max="200" 
+	return <div className="form-inline well">
+		<div className="form-group">
+		<label htmlFor="body-mass">Weight (kg):&nbsp;</label>
+			<input id="body-mass" className="form-control" type="number" min="10" max="200" 
 				value={props.weight} 
 				onChange={props.handleWeightChange} />
-			<input type="range" min="10" max="200" 
+			<input className="form-control" type="range" min="10" max="200" 
 				value={props.weight} 
 				onChange={props.handleWeightChange} />
-		</label>
-		<div>
-			<span>Gender:</span>
-			<label>Male 
+		
+				</div>
+		<div className="form-group">
+			<label>Gender:&nbsp;</label>
+			<label className="form-control">Male&nbsp;
 				<input 
 					type="radio" 
 					value="male" 
@@ -20,7 +22,7 @@ function BodyConfig(props) {
 					onChange={props.handleSexChange}
 				/>
 			</label>
-			<label>Female 
+			<label className="form-control">Female&nbsp;
 				<input 
 					type="radio" 
 					value="female" 
@@ -29,7 +31,8 @@ function BodyConfig(props) {
 				/>
 			</label>
 		</div>
-		<button onClick={props.saySex}>+</button>
+		<button onClick={props.addRow} className="btn btn-primary higher-2px-hack">Add a drink</button>
+
 	</div>
 }
 
