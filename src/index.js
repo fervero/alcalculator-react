@@ -4,98 +4,83 @@ import BodyConfig from "./bodyconfig";
 import OneDrink from "./onedrink";
 import Results from "./results";
 import { render } from "react-dom";
+import createClass from "create-react-class";
+
+const ethanolDensity = 0.789,
+		genderCoefficient = { "male": 5/3, "female": 10/7 };
 
 const drinkTypes = [
-	{type: "vodka", shot: 40, proof: 45},
-	{type: "beer", shot: 500, proof: 7}
+	{type: "Vodka", shot: 40, proof: 45},
+	{type: "Beer", shot: 500, proof: 7},
+	{type: "Wine", shot: 100, proof: 12},
+	{type: "Whisky, Gin, Tequila", shot: 40, proof: 40},
+	{type: "Liqueur", shot: 40, proof: 18 },
+	{type: "Dwarven Spirit", shot: 40, proof: 100 }	
 ];
 
-class App extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
+class Drink {
+	constructor(id) {
+		Object.assign(this, drinkTypes[0]);
+		this.id = id;
+		this.number = 1;
+		this.alcoholType = 0;
+		this.recount()
+		}
+	recount() {
+		this.number = Math.max(this.number, 0);
+		this.alcohol = Math.ceil(ethanolDensity * this.number * this.shot * this.proof / 100);			
+		return this;
+	}
+}
+
+const App = createClass({
+	getInitialState: function() {
+		return {
 			gender: "male",
 			weight: "75",
 			idCount: 0,
 			drinks: []
 		}
-
-/* Sad comment on the code below: why the React dev team would fuck up the ES6 classes binding,
-	and then insist that we use the ES6 class syntax? Why?... */
-
-		this.handleWeightChange = this.handleWeightChange.bind(this);
-		this.handleSexChange = this.handleSexChange.bind(this);
-		this.saySex = this.saySex.bind(this);
-		this.kliker = this.kliker.bind(this);
-		this.addRow = this.addRow.bind(this);
-		this.numberUpdater = this.numberUpdater.bind(this);
-		this.getNewId = this.getNewId.bind(this);
-		this.drinkChangeHandler = this.drinkChangeHandler.bind(this);
-		this.countAlcohol = this.countAlcohol.bind(this);
-	}
-	getNewId() {
+	},
+	getNewId: function() {
 		return this.state.idCount++;
-	}
-	handleWeightChange(e) {
-		this.setState({weight: e.target.value})
-	}
-	handleSexChange(e) {
-		this.setState({gender: e.target.value});
-	}
-	saySex(e) {
-		console.log(this.state.gender);
-		console.log(this.state.weight);		
-	}
-	addRow() {
-		var newDrink = {
-			name: this.getNewId(),
-			number: 0,
-			alcohol: 0,
-			alcoholType: 0
-		}
+	},
+	addRow: function(e) {
+		var newDrink = (new Drink(this.getNewId())).recount();
 		this.setState({
 			drinks: this.state.drinks.concat([ newDrink ])
 		});
-	}
-	recountDrink(drink) {
-		drink.alcohol = Math.round(drink.number * 
-			drinkTypes[drink.alcoholType].shot *
-			drinkTypes[drink.alcoholType].proof / 100);
-		return drink
-	}
-	numberUpdater(key, number) {
-		var updatedDrink = this.state.drinks.find( drink => drink.name === key );
-		updatedDrink.number = number;
-		updatedDrink = this.recountDrink(updatedDrink);
+	},
+	deleteRow: function(id) {
+		var drinksArr = this.state.drinks.filter(
+			drink => drink.id !== id
+		);
+		this.setState({drinks: drinksArr});
+	},	
+	handleWeightChange: function(e) {
+		this.setState({weight: e.target.value})
+	},
+	handleSexChange: function(e) {
+		this.setState({gender: e.target.value});
+	},
+	drinkUpdater: function(key, newValues) {
+		var updatedDrink = this.state.drinks.find( drink => drink.id === key );
+		Object.assign(updatedDrink, newValues);
+		updatedDrink.recount();
 		var drinkArr = this.state.drinks.map(
-			drink => (drink.name===key) ? updatedDrink : drink
+			drink => (drink.id===key) ? updatedDrink : drink
 		);
 		this.setState({ 
 			drinks: drinkArr
-		})
-	}
-	kliker(key) {
-		var drink = this.state.drinks[key];
-		console.log(drink);
-	}
-	drinkChangeHandler(key, type) {
-		var updatedDrink = this.state.drinks.find( drink => drink.name === key );
-		updatedDrink.alcoholType = type;
-		updatedDrink = this.recountDrink(updatedDrink);
-		var drinkArr = this.state.drinks.map(
-			drink => (drink.name===key) ? updatedDrink : drink
-		)
-		this.setState({ 
-			drinks: drinkArr
-		})
-	}
-	countAlcohol() {
+		});				
+	},
+	countAlcohol: function() {
 		return this.state.drinks.reduce(
 			(acc, drink) => acc + drink.alcohol, 
 			0
 		)
-	}
-	render() {
+	},
+	render: function() {
 		return (
 			<div>
 				<Title />
@@ -110,20 +95,22 @@ class App extends React.Component {
 					this.state.drinks.map(
 						drink => <OneDrink 
 							drinkTypes={drinkTypes}
-							key={drink.name} 
-							id={drink.name}
-							number={drink.number}
-							alcohol={drink.alcohol}
-							clickHandler={this.kliker}
-							numberUpdater={this.numberUpdater}
-							drinkChangeHandler={this.drinkChangeHandler}
+							key={drink.id} 
+							{...drink}
+							clickHandler={this.deleteRow}
+							drinkUpdater={this.drinkUpdater}
 							/>
 					)
 				}
-				<Results alcohol={this.countAlcohol()}/>
+				<Results 
+					alcohol={ this.countAlcohol() }
+					genderCoefficient={ genderCoefficient[this.state.gender] }
+					bodyMass={ this.state.weight }
+				/>
 			</div>			
 		)
 	}
-}
+
+});
 
 render(<App />, document.querySelector("#app"));
